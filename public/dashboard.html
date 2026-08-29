@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IKABOUTIQUE - Dashboard API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .status-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #27ae60;
+        }
+        .status-item .label {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        .status-item .value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .status-item .value.success { color: #27ae60; }
+        .status-item .value.pending { color: #f39c12; }
+        .status-item .value.error { color: #e74c3c; }
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        .btn:hover { background: #2980b9; }
+        .btn-success { background: #27ae60; }
+        .btn-success:hover { background: #219a52; }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .table th, .table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+        .token-display {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        .input-group input, .input-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 150px;
+        }
+        .flex {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .flex-1 { flex: 1; min-width: 300px; }
+        .mt-10 { margin-top: 10px; }
+        .mb-10 { margin-bottom: 10px; }
+        .text-center { text-align: center; }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-success { background: #d5f5e3; color: #27ae60; }
+        .badge-warning { background: #fdebd0; color: #f39c12; }
+        .badge-danger { background: #fadbd8; color: #e74c3c; }
+        .badge-info { background: #d6eaf8; color: #2980b9; }
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #2c3e50;
+            color: white;
+            border-radius: 8px;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        }
+        .toast.success { background: #27ae60; }
+        .toast.error { background: #e74c3c; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 IKABOUTIQUE - Dashboard API</h1>
+
+        <!-- Token Section -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <h2>🔑 Authentification</h2>
+                <div>
+                    <button class="btn" onclick="login()">🔐 Se connecter</button>
+                    <button class="btn btn-danger" onclick="logout()">🚪 Déconnexion</button>
+                </div>
+            </div>
+            <div class="input-group">
+                <input type="text" id="email" value="vendeur@test.com" placeholder="Email">
+                <input type="password" id="password" value="password123" placeholder="Mot de passe">
+            </div>
+            <div class="token-display" id="tokenDisplay">⛔ Non connecté</div>
+        </div>
+
+        <!-- Stats -->
+        <div class="card">
+            <h2>📊 Statistiques</h2>
+            <div class="status-grid" id="statsGrid">
+                <div class="status-item"><div class="label">Total Produits</div><div class="value" id="totalProducts">-</div></div>
+                <div class="status-item"><div class="label">Total Commandes</div><div class="value" id="totalOrders">-</div></div>
+                <div class="status-item"><div class="label">Panier</div><div class="value" id="cartTotal">-</div></div>
+                <div class="status-item"><div class="label">Notifications non lues</div><div class="value" id="unreadNotifications">-</div></div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="card">
+            <h2>⚡ Actions rapides</h2>
+            <div class="flex">
+                <div class="flex-1">
+                    <h3>📦 Produits</h3>
+                    <button class="btn" onclick="getProducts()">📋 Lister</button>
+                    <button class="btn btn-success" onclick="createProduct()">➕ Créer</button>
+                </div>
+                <div class="flex-1">
+                    <h3>🛒 Panier</h3>
+                    <button class="btn" onclick="getCart()">👀 Voir</button>
+                    <button class="btn btn-success" onclick="addToCart()">➕ Ajouter</button>
+                    <button class="btn btn-danger" onclick="clearCart()">🗑️ Vider</button>
+                </div>
+                <div class="flex-1">
+                    <h3>📦 Commandes</h3>
+                    <button class="btn" onclick="getOrders()">📋 Lister</button>
+                    <button class="btn btn-success" onclick="createOrder()">➕ Créer</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Résultats -->
+        <div class="card">
+            <h2>📄 Résultats</h2>
+            <pre id="resultDisplay" style="background:#2c3e50;color:#ecf0f1;padding:15px;border-radius:8px;max-height:400px;overflow:auto;font-size:12px;white-space:pre-wrap;word-wrap:break-word;">⏳ En attente d'actions...</pre>
+        </div>
+    </div>
+
+    <script>
+        let token = localStorage.getItem('token') || null;
+        let apiBase = 'https://refactored-palm-tree-r4qwvr9vrrg7fx67g-8000.preview.app.github.dev/api/v1';
+
+        // Mettre à jour l'affichage du token
+        function updateTokenDisplay() {
+            const display = document.getElementById('tokenDisplay');
+            if (token) {
+                display.textContent = '🔑 ' + token.substring(0, 60) + '...';
+            } else {
+                display.textContent = '⛔ Non connecté';
+            }
+        }
+        updateTokenDisplay();
+
+        // Afficher les résultats
+        function showResult(data) {
+            const el = document.getElementById('resultDisplay');
+            el.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        }
+
+        // Toast notification
+        function toast(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `toast ${type}`;
+            div.textContent = message;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        // Récupérer le token
+        function getToken() {
+            if (!token) {
+                toast('Veuillez vous connecter d\'abord', 'error');
+                return null;
+            }
+            return token;
+        }
+
+        // Connexion
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                const res = await fetch(`${apiBase}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    token = data.token;
+                    localStorage.setItem('token', token);
+                    updateTokenDisplay();
+                    toast('Connexion réussie !', 'success');
+                    showResult(data);
+                    refreshStats();
+                } else {
+                    toast('Erreur de connexion', 'error');
+                    showResult(data);
+                }
+            } catch (e) {
+                toast('Erreur réseau', 'error');
+                showResult({ error: e.message });
+            }
+        }
+
+        // Déconnexion
+        function logout() {
+            token = null;
+            localStorage.removeItem('token');
+            updateTokenDisplay();
+            toast('Déconnecté', 'info');
+            document.getElementById('resultDisplay').textContent = '⛔ Déconnecté';
+        }
+
+        // Produits
+        async function getProducts() {
+            const t = getToken();
+            if (!t) return;
+            try {
+                const res = await fetch(`${apiBase}/products`, {
+                    headers: { 'Authorization': `Bearer ${t}` }
+                });
+                const data = await res.json();
+                showResult(data);
+                if (Array.isArray(data)) {
+                    document.getElementById('totalProducts').textContent = data.length;
+                }
+            } catch (e) { showResult({ error: e.message }); }
+        }
+
+        async function createProduct() {
+            const t = getToken();
+            if (!t) return;
+            const data = {
+                name: 'Produit ' + Date.now(),
+                slug: 'produit-' + Date.now(),
+                description: 'Description automatique',
+                price: 99.99,
+                stock: 10,
+                category_id: 1,
+                shop_id: 1
+            };
+            try {
+                const res = await fetch(`${apiBase}/products`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${t}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                showResult(result);
+                toast('Produit créé !', 'success');
+                getProducts();
+            } catch (e) { showResult({ error: e.message }); }
+        }
+
+        // Panier
+        async function getCart() {
+            const t = getToken();
+            if (!t) return;
+            try {
+                const res = await fetch(`${apiBase}/cart`, {
+                    headers: { 'Authorization': `Bearer ${t}` }
+                });
+                const data = await res.json();
+                showResult(data);
+                if (data.total !== undefined) {
+                    document.getElementById('cartTotal').textContent = data.total + ' FCFA';
+                }
+            } catch (e) { showResult({ error: e.message }); }
+        }
+
+        async function addToCart() {
+            const t = getToken();
+            if (!t) return;
+            try {
+                const res = await fetch(`${apiBase}/cart/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${t}`
+                    },
+                    body: JSON.stringify({ product_id: 1, quantity: 1 })
+                });
+                const data = await res.json();
+                showResult(data);
+                toast('Ajouté au panier !', 'success');
+                getCart();
+            } catch (e) { showResult({ error: e.message }); }
+        }
+
+        async function clearCart() {
+            const t = getToken();
+            if (!t) return;
+            if (!confirm('Vider le panier ?')) return;
+            try {
+                const res = await fetch(`${apiBase}/cart/clear`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${t}` }
+                });
+                const data = await res.json();
+                showResult(data);
+                toast('Panier vidé', 'info');
+                getCart();
+            } catch (e) { showResult({ error: e.message }); }
+        }
+
+        // Commandes
+        async function getOrders() {
+            const t = getToken();
+            if (!t) return;
+            try {
+                const res = await fetch(`${apiBase}/orders`, {
+                    headers: { 'Authorization': `Bearer ${t}` }
+                });
+                const data = await res.json();
+                showResult(data);
+                if (Array.isArray(data)) {
+                    document.getElementById('totalOrders').textContent = data.length;
+                }
+            } catch (e) { showResult({ error: e.message }); }
+        }
+
+        async function createOrder() {
+            const t = getToken();
+            if (!t) return;
+            try {
+                const res = await fetch(`${apiBase}/orders`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${t}`
+                    },
+                    body: JSON.stringify({
+                        shipping_address: '123 Rue Test',
+                        billing_address: '123 Rue Test',
+                        payment_method: 'card'
+                    })
+                });
+                const data = await res.json();
+                showResult(data);
+                toast('Commande créée !', 'success');
+                getOrders();
+            } catch (e) { showResult({ error: e.message }); }
+        }
+
+        // Notifications
+        async function refreshStats() {
+            const t = getToken();
+            if (!t) return;
+            try {
+                const res = await fetch(`${apiBase}/notifications`, {
+                    headers: { 'Authorization': `Bearer ${t}` }
+                });
+                const data = await res.json();
+                if (data.unread_count !== undefined) {
+                    document.getElementById('unreadNotifications').textContent = data.unread_count;
+                }
+            } catch (e) {}
+            // Mettre à jour les autres stats
+            getProducts();
+            getCart();
+            getOrders();
+        }
+
+        // Auto-refresh toutes les 30 secondes
+        setInterval(() => {
+            if (token) refreshStats();
+        }, 30000);
+    </script>
+</body>
+</html>

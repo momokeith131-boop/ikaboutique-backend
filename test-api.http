@@ -1,0 +1,46 @@
+### Connexion
+POST http://127.0.0.1:8000/api/v1/auth/login
+Content-Type: application/json
+
+{
+    "email": "vendeur@test.com",
+    "password": "password123"
+}
+
+### Lister les produits (protégé)
+GET http://127.0.0.1:8000/api/v1/products
+Authorization: Bearer TON_TOKEN
+
+### Voir le panier
+GET http://127.0.0.1:8000/api/v1/cart
+Authorization: Bearer TON_TOKEN
+
+### Ajouter au panier
+POST http://127.0.0.1:8000/api/v1/cart/add
+Authorization:  Bearer TON_TOKEN
+Content-Type: application/json
+
+{
+    "product_id": 1,
+    "quantity": 2
+}
+
+### Créer une commande
+POST http://127.0.0.1:8000/api/v1/orders
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDAvYXBpL3YxL2F1dGgvbG9naW4iLCJpYXQiOjE3ODgwMTk3MzQsImV4cCI6MTc4ODAyMzMzNCwibmJmIjoxNzg4MDE5NzM0LCJqdGkiOiJKM0M3UTNhTGxmQWc0SmloIiwic3ViIjoiMSIsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.uR1H2PEA8oAKZbTG5a7Pjed1sWQrPgZGizsv8n-4ar8
+Content-Type: application/json
+
+{
+    "shipping_address": "123 Rue Test",
+    "billing_address": "123 Rue Test",
+    "payment_method": "card"
+}
+### Ajouter au panier
+POST http://127.0.0.1:8000/api/v1/cart/add
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDAvYXBpL3YxL2F1dGgvbG9naW4iLCJpYXQiOjE3ODgwMTk3MzQsImV4cCI6MTc4ODAyMzMzNCwibmJmIjoxNzg4MDE5NzM0LCJqdGkiOiJKM0M3UTNhTGxmQWc0SmloIiwic3ViIjoiMSIsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.uR1H2PEA8oAKZbTG5a7Pjed1sWQrPgZGizsv8n-4ar8
+Content-Type: application/json
+
+{
+    "product_id": 1,
+    "quantity": 2
+}

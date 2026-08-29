@@ -72,11 +72,17 @@ Route::post('/categories', [CategoryController::class, 'store']);
         Route::post('/payments/initiate', [PaymentController::class, 'initiate']);
         Route::post('/payments/{id}/confirm', [PaymentController::class, 'confirm']);
         Route::get('/payments/{id}/status', [PaymentController::class, 'getStatus']);
+	// ---- Product Images ----
+	Route::post('/products/{id}/images', [ProductController::class, 'addImage']);
+	Route::delete('/products/images/{id}', [ProductController::class, 'deleteImage']);
+	Route::get('/products/{id}/images', [ProductController::class, 'getImages']);
 
         // ---- Notifications ----
+                // ---- Notifications ----
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
         Route::post('/notifications/subscribe', [NotificationController::class, 'subscribe']);
         Route::post('/notifications/unsubscribe', [NotificationController::class, 'unsubscribe']);
-    });
+        Route::post('/notifications/create', [NotificationController::class, 'createNotification']); 
+ });
 });
