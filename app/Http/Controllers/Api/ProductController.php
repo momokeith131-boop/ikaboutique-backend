@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 
 class ProductController
 {
@@ -29,6 +30,10 @@ class ProductController
     // Créer un produit (vendeur uniquement)
     public function store(Request $request)
     {
+        if (!Gate::allows('create', Product::class)) {
+            return response()->json(['message' => 'Forbidden - You are not a seller or admin'], Response::HTTP_FORBIDDEN);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'required|string|unique:products',
@@ -49,6 +54,9 @@ class ProductController
     {
         $product = Product::find($id);
         if (!$product) {
+        if (!Gate::allows('update', $product)) {
+            return response()->json(['message' => 'Forbidden - You cannot edit this product'], Response::HTTP_FORBIDDEN);
+        }
             return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
 
@@ -71,6 +79,9 @@ class ProductController
     {
         $product = Product::find($id);
         if (!$product) {
+        if (!Gate::allows('delete', $product)) {
+            return response()->json(['message' => 'Forbidden - You cannot delete this product'], Response::HTTP_FORBIDDEN);
+        }
             return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
 
