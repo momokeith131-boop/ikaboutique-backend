@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html>
 <head>
     <meta charset="UTF-8">
@@ -233,7 +233,7 @@
 </body>
 </html>
 EOFcat > /workspaces/ikaboutique-backend/public/docs.html << 'EOF'
-<!DOCTYPE html>
+
 <html>
 <head>
     <meta charset="UTF-8">

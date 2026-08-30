@@ -10,14 +10,45 @@ use Illuminate\Support\Facades\Gate;
 
 class ProductController
 {
-    // Liste des produits (public)
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with(['shop', 'category', 'images'])->get();
+        $cacheKey = 'products_' . md5(json_encode($request->all()));
+        
+        $products = cache()->remember($cacheKey, 600, function () use ($request) {
+            $query = Product::with(['shop', 'category', 'images']);
+
+            if ($request->has('search')) {
+                $query->where('name', 'LIKE', '%' . $request->search . '%');
+            }
+
+            if ($request->has('category_id')) {
+                $query->where('category_id', $request->category_id);
+            }
+
+            if ($request->has('shop_id')) {
+                $query->where('shop_id', $request->shop_id);
+            }
+
+            if ($request->has('price_min')) {
+                $query->where('price', '>=', $request->price_min);
+            }
+
+            if ($request->has('price_max')) {
+                $query->where('price', '<=', $request->price_max);
+            }
+
+            if ($request->has('sort_by')) {
+                $direction = $request->get('sort_direction', 'asc');
+                $query->orderBy($request->sort_by, $direction);
+            }
+
+            $perPage = $request->get('per_page', 15);
+            return $query->paginate($perPage);
+        });
+
         return response()->json($products);
     }
 
-    // Détail d'un produit (public)
     public function show($id)
     {
         $product = Product::with(['shop', 'category', 'images'])->find($id);
@@ -27,7 +58,6 @@ class ProductController
         return response()->json($product);
     }
 
-    // Créer un produit (vendeur uniquement)
     public function store(Request $request)
     {
         if (!Gate::allows('create', Product::class)) {
@@ -46,18 +76,19 @@ class ProductController
         ]);
 
         $product = Product::create($validated);
+        cache()->forget('products_');
         return response()->json($product, Response::HTTP_CREATED);
     }
 
-    // Modifier un produit (vendeur uniquement)
     public function update(Request $request, $id)
     {
         $product = Product::find($id);
         if (!$product) {
+            return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
+        }
+
         if (!Gate::allows('update', $product)) {
             return response()->json(['message' => 'Forbidden - You cannot edit this product'], Response::HTTP_FORBIDDEN);
-        }
-            return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
 
         $validated = $request->validate([
@@ -71,25 +102,26 @@ class ProductController
         ]);
 
         $product->update($validated);
+        cache()->forget('products_');
         return response()->json($product);
     }
 
-    // Supprimer un produit (vendeur uniquement)
     public function destroy($id)
     {
         $product = Product::find($id);
         if (!$product) {
-        if (!Gate::allows('delete', $product)) {
-            return response()->json(['message' => 'Forbidden - You cannot delete this product'], Response::HTTP_FORBIDDEN);
-        }
             return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
 
+        if (!Gate::allows('delete', $product)) {
+            return response()->json(['message' => 'Forbidden - You cannot delete this product'], Response::HTTP_FORBIDDEN);
+        }
+
         $product->delete();
+        cache()->forget('products_');
         return response()->json(['message' => 'Product deleted successfully'], Response::HTTP_OK);
     }
 
-    // Ajouter une image à un produit
     public function addImage(Request $request, $id)
     {
         $product = Product::find($id);
@@ -103,11 +135,9 @@ class ProductController
         ]);
 
         $image = $product->images()->create($validated);
-
         return response()->json($image, Response::HTTP_CREATED);
     }
 
-    // Supprimer une image
     public function deleteImage($imageId)
     {
         $image = ProductImage::find($imageId);
@@ -119,7 +149,6 @@ class ProductController
         return response()->json(['message' => 'Image deleted successfully']);
     }
 
-    // Lister les images d'un produit
     public function getImages($id)
     {
         $product = Product::find($id);
@@ -128,5 +157,11 @@ class ProductController
         }
 
         return response()->json($product->images);
+    }
+
+    public function clearCache()
+    {
+        cache()->flush();
+        return response()->json(['message' => 'Cache cleared successfully']);
     }
 }
