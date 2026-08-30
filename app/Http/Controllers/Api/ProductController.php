@@ -165,3 +165,58 @@ class ProductController
         return response()->json(['message' => 'Cache cleared successfully']);
     }
 }
+
+    // Produits en stock faible
+    public function lowStock()
+    {
+        $products = Product::where('stock', '<=', 'low_stock_threshold')
+            ->with('shop')
+            ->get();
+
+        return response()->json([
+            'products' => $products,
+            'total' => $products->count(),
+        ]);
+    }
+
+    // Réapprovisionner un produit
+    public function restock(Request $request, $id)
+    {
+        $product = Product::find($id);
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $validated = $request->validate([
+            'quantity' => 'required|integer|min:1',
+            'reason' => 'nullable|string',
+        ]);
+
+        $oldStock = $product->stock;
+        $product->stock += $validated['quantity'];
+        $product->save();
+
+        return response()->json([
+            'message' => 'Product restocked successfully',
+            'product' => $product,
+            'old_stock' => $oldStock,
+            'added' => $validated['quantity'],
+        ]);
+    }
+
+    // Historique des stocks
+    public function stockHistory($id)
+    {
+        $product = Product::find($id);
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        return response()->json([
+            'product' => $product,
+            'history' => [
+                ['date' => $product->created_at, 'event' => 'created', 'stock' => $product->stock],
+                // Pour l'instant on simule, on pourra ajouter une table d'historique plus tard
+            ],
+        ]);
+    }
