@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\AuditController;
 use App\Http\Controllers\Api\WebhookController;
 use App\Http\Controllers\Api\ExportController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\TwoFactorController;
 
 Route::prefix('v1')->group(function () {
 
@@ -144,6 +145,11 @@ Route::prefix('v1')->group(function () {
         Route::delete('/reviews/{id}', [ReviewController::class, 'destroy']);
         Route::post('/reviews/{id}/like', [ReviewController::class, 'like']);
 
+        Route::post('/2fa/enable', [TwoFactorController::class, 'enable']);
+        Route::post('/2fa/verify', [TwoFactorController::class, 'verify']);
+        Route::post('/2fa/disable', [TwoFactorController::class, 'disable']);
+        Route::get('/2fa/status', [TwoFactorController::class, 'status']);
+
         Route::middleware(['role:admin'])->prefix('admin')->group(function () {
             Route::get('/dashboard', [AdminController::class, 'dashboard']);
             Route::get('/users', [AdminController::class, 'users']);
@@ -158,3 +164,13 @@ Route::prefix('v1')->group(function () {
         });
     });
 });
+
+        Route::get('/invoice/{orderId}/download', [App\Http\Controllers\Api\InvoiceController::class, 'generate']);
+        Route::get('/invoice/{orderId}/view', [App\Http\Controllers\Api\InvoiceController::class, 'view']);
+
+        Route::get('/export/products/excel', [App\Http\Controllers\Api\ExportController::class, 'productsExcel']);
+        Route::post('/import/products', [App\Http\Controllers\Api\ImportController::class, 'products']);
+
+        Route::get('/admin/users', [AdminController::class, 'users'])->middleware('permission:users.view');
+        Route::get('/admin/shops', [AdminController::class, 'shops'])->middleware('permission:shops.view');
+        Route::get('/admin/subscriptions', [AdminController::class, 'subscriptions'])->middleware('permission:subscriptions.view');
