@@ -12,39 +12,35 @@ class ProductController
 {
     public function index(Request $request)
     {
-        $cacheKey = 'products_' . md5(json_encode($request->all()));
-        
-        $products = cache()->remember($cacheKey, 600, function () use ($request) {
-            $query = Product::with(['shop', 'category', 'images']);
+        $query = Product::with(['shop', 'category', 'images']);
 
-            if ($request->has('search')) {
-                $query->where('name', 'LIKE', '%' . $request->search . '%');
-            }
+        if ($request->has('search')) {
+            $query->where('name', 'LIKE', '%' . $request->search . '%');
+        }
 
-            if ($request->has('category_id')) {
-                $query->where('category_id', $request->category_id);
-            }
+        if ($request->has('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
 
-            if ($request->has('shop_id')) {
-                $query->where('shop_id', $request->shop_id);
-            }
+        if ($request->has('shop_id')) {
+            $query->where('shop_id', $request->shop_id);
+        }
 
-            if ($request->has('price_min')) {
-                $query->where('price', '>=', $request->price_min);
-            }
+        if ($request->has('price_min')) {
+            $query->where('price', '>=', $request->price_min);
+        }
 
-            if ($request->has('price_max')) {
-                $query->where('price', '<=', $request->price_max);
-            }
+        if ($request->has('price_max')) {
+            $query->where('price', '<=', $request->price_max);
+        }
 
-            if ($request->has('sort_by')) {
-                $direction = $request->get('sort_direction', 'asc');
-                $query->orderBy($request->sort_by, $direction);
-            }
+        if ($request->has('sort_by')) {
+            $direction = $request->get('sort_direction', 'asc');
+            $query->orderBy($request->sort_by, $direction);
+        }
 
-            $perPage = $request->get('per_page', 15);
-            return $query->paginate($perPage);
-        });
+        $perPage = $request->get('per_page', config('app.per_page', 15));
+        $products = $query->paginate($perPage);
 
         return response()->json($products);
     }
@@ -76,7 +72,6 @@ class ProductController
         ]);
 
         $product = Product::create($validated);
-        cache()->forget('products_');
         return response()->json($product, Response::HTTP_CREATED);
     }
 
@@ -102,7 +97,6 @@ class ProductController
         ]);
 
         $product->update($validated);
-        cache()->forget('products_');
         return response()->json($product);
     }
 
@@ -118,7 +112,6 @@ class ProductController
         }
 
         $product->delete();
-        cache()->forget('products_');
         return response()->json(['message' => 'Product deleted successfully'], Response::HTTP_OK);
     }
 
@@ -159,27 +152,26 @@ class ProductController
         return response()->json($product->images);
     }
 
-    public function clearCache()
+    public function updateStock(Request $request, $id)
     {
-        cache()->flush();
-        return response()->json(['message' => 'Cache cleared successfully']);
-    }
-}
+        $product = Product::find($id);
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], Response::HTTP_NOT_FOUND);
+        }
 
-    // Produits en stock faible
-    public function lowStock()
-    {
-        $products = Product::where('stock', '<=', 'low_stock_threshold')
-            ->with('shop')
-            ->get();
+        $validated = $request->validate([
+            'stock' => 'required|integer|min:0',
+        ]);
+
+        $product->stock = $validated['stock'];
+        $product->save();
 
         return response()->json([
-            'products' => $products,
-            'total' => $products->count(),
+            'message' => 'Stock updated successfully',
+            'product' => $product,
         ]);
     }
 
-    // Réapprovisionner un produit
     public function restock(Request $request, $id)
     {
         $product = Product::find($id);
@@ -189,22 +181,29 @@ class ProductController
 
         $validated = $request->validate([
             'quantity' => 'required|integer|min:1',
-            'reason' => 'nullable|string',
         ]);
 
-        $oldStock = $product->stock;
         $product->stock += $validated['quantity'];
         $product->save();
 
         return response()->json([
             'message' => 'Product restocked successfully',
             'product' => $product,
-            'old_stock' => $oldStock,
-            'added' => $validated['quantity'],
         ]);
     }
 
-    // Historique des stocks
+    public function lowStock()
+    {
+        $products = Product::whereColumn('stock', '<=', 'low_stock_threshold')
+            ->with('shop')
+            ->get();
+
+        return response()->json([
+            'products' => $products,
+            'total' => $products->count(),
+        ]);
+    }
+
     public function stockHistory($id)
     {
         $product = Product::find($id);
@@ -216,7 +215,7 @@ class ProductController
             'product' => $product,
             'history' => [
                 ['date' => $product->created_at, 'event' => 'created', 'stock' => $product->stock],
-                // Pour l'instant on simule, on pourra ajouter une table d'historique plus tard
             ],
         ]);
     }
+}

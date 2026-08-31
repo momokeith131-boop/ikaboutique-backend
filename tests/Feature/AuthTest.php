@@ -10,8 +10,8 @@ class AuthTest extends TestCase
 {
     public function test_un_utilisateur_peut_s_inscrire()
     {
-        $email = 'test' . time() . rand(1, 1000) . '@example.com';
-        $phone = '+223' . rand(10000000, 99999999) . rand(1, 100);
+        $email = 'test' . time() . '@example.com';
+        $phone = '+223' . rand(10000000, 99999999);
 
         $response = $this->postJson('/api/v1/auth/register', [
             'name' => 'Test User',
@@ -32,8 +32,8 @@ class AuthTest extends TestCase
 
     public function test_un_utilisateur_peut_se_connecter()
     {
-        $email = 'login' . time() . rand(1, 1000) . '@test.com';
-        $phone = '+223' . rand(10000000, 99999999) . rand(1, 100);
+        $email = 'login' . time() . '@test.com';
+        $phone = '+223' . rand(10000000, 99999999);
 
         $user = User::factory()->create([
             'email' => $email,

@@ -16,6 +16,11 @@ use App\Http\Controllers\Api\StatisticController;
 use App\Http\Controllers\Api\AccountingController;
 use App\Http\Controllers\Api\DomainController;
 use App\Http\Controllers\Api\BackupController;
+use App\Http\Controllers\Api\TicketController;
+use App\Http\Controllers\Api\AuditController;
+use App\Http\Controllers\Api\WebhookController;
+use App\Http\Controllers\Api\ExportController;
+use App\Http\Controllers\Api\ReviewController;
 
 Route::prefix('v1')->group(function () {
 
@@ -27,6 +32,7 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::get('/categories/{id}', [CategoryController::class, 'show']);
+    Route::post('/categories', [CategoryController::class, 'store']);
 
     Route::get('/shops', [ShopController::class, 'index']);
     Route::get('/shops/{id}', [ShopController::class, 'show']);
@@ -105,6 +111,38 @@ Route::prefix('v1')->group(function () {
         Route::get('/backups/{id}', [BackupController::class, 'show']);
         Route::delete('/backups/{id}', [BackupController::class, 'destroy']);
         Route::get('/backups/{id}/download', [BackupController::class, 'download']);
+
+        Route::get('/tickets', [TicketController::class, 'index']);
+        Route::post('/tickets', [TicketController::class, 'store']);
+        Route::get('/tickets/{id}', [TicketController::class, 'show']);
+        Route::post('/tickets/{id}/reply', [TicketController::class, 'reply']);
+        Route::put('/tickets/{id}/status', [TicketController::class, 'updateStatus']);
+
+        Route::get('/audit/logs', [AuditController::class, 'index']);
+        Route::get('/audit/logs/{id}', [AuditController::class, 'show']);
+        Route::get('/audit/logs/user/{userId}', [AuditController::class, 'userLogs']);
+        Route::get('/audit/stats', [AuditController::class, 'stats']);
+
+        Route::get('/webhooks', [WebhookController::class, 'index']);
+        Route::post('/webhooks', [WebhookController::class, 'store']);
+        Route::get('/webhooks/{id}', [WebhookController::class, 'show']);
+        Route::put('/webhooks/{id}', [WebhookController::class, 'update']);
+        Route::delete('/webhooks/{id}', [WebhookController::class, 'destroy']);
+        Route::post('/webhooks/{id}/trigger', [WebhookController::class, 'trigger']);
+
+        Route::get('/export/orders/csv', [ExportController::class, 'ordersCsv']);
+        Route::get('/export/orders/pdf', [ExportController::class, 'ordersPdf']);
+        Route::get('/export/products/csv', [ExportController::class, 'productsCsv']);
+        Route::get('/export/products/pdf', [ExportController::class, 'productsPdf']);
+        Route::get('/export/customers/csv', [ExportController::class, 'customersCsv']);
+        Route::get('/export/customers/pdf', [ExportController::class, 'customersPdf']);
+
+        Route::get('/products/{productId}/reviews', [ReviewController::class, 'index']);
+        Route::post('/products/{productId}/reviews', [ReviewController::class, 'store']);
+        Route::get('/reviews/{id}', [ReviewController::class, 'show']);
+        Route::put('/reviews/{id}', [ReviewController::class, 'update']);
+        Route::delete('/reviews/{id}', [ReviewController::class, 'destroy']);
+        Route::post('/reviews/{id}/like', [ReviewController::class, 'like']);
 
         Route::middleware(['role:admin'])->prefix('admin')->group(function () {
             Route::get('/dashboard', [AdminController::class, 'dashboard']);
