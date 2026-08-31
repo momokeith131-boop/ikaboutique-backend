@@ -3,6 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
+    "build": "composer install --no-dev && php artisan optimize",
         "build": "vite build",
         "dev": "vite"
     },
