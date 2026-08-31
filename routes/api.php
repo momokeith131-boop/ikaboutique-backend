@@ -22,6 +22,8 @@ use App\Http\Controllers\Api\WebhookController;
 use App\Http\Controllers\Api\ExportController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\TwoFactorController;
+use App\Http\Controllers\Api\CouponController;
+use App\Http\Controllers\Api\LoyaltyController;
 
 Route::prefix('v1')->group(function () {
 
@@ -150,6 +152,18 @@ Route::prefix('v1')->group(function () {
         Route::post('/2fa/disable', [TwoFactorController::class, 'disable']);
         Route::get('/2fa/status', [TwoFactorController::class, 'status']);
 
+        Route::get('/coupons', [CouponController::class, 'index']);
+        Route::post('/coupons', [CouponController::class, 'store']);
+        Route::get('/coupons/{id}', [CouponController::class, 'show']);
+        Route::put('/coupons/{id}', [CouponController::class, 'update']);
+        Route::delete('/coupons/{id}', [CouponController::class, 'destroy']);
+        Route::post('/coupons/validate', [CouponController::class, 'validateCoupon']);
+
+        Route::get('/loyalty/settings', [LoyaltyController::class, 'settings']);
+        Route::put('/loyalty/settings', [LoyaltyController::class, 'updateSettings']);
+        Route::get('/loyalty/customer/{customerId}/points', [LoyaltyController::class, 'customerPoints']);
+        Route::get('/loyalty/customer/{customerId}/history', [LoyaltyController::class, 'customerPointsHistory']);
+
         Route::middleware(['role:admin'])->prefix('admin')->group(function () {
             Route::get('/dashboard', [AdminController::class, 'dashboard']);
             Route::get('/users', [AdminController::class, 'users']);
@@ -165,12 +179,18 @@ Route::prefix('v1')->group(function () {
     });
 });
 
-        Route::get('/invoice/{orderId}/download', [App\Http\Controllers\Api\InvoiceController::class, 'generate']);
-        Route::get('/invoice/{orderId}/view', [App\Http\Controllers\Api\InvoiceController::class, 'view']);
+        Route::get('/chat/conversations', [App\Http\Controllers\Api\ChatController::class, 'conversations']);
+        Route::get('/chat/customer/conversations', [App\Http\Controllers\Api\ChatController::class, 'customerConversations']);
+        Route::get('/chat/conversations/{id}', [App\Http\Controllers\Api\ChatController::class, 'show']);
+        Route::post('/chat/create', [App\Http\Controllers\Api\ChatController::class, 'create']);
+        Route::post('/chat/conversations/{id}/message', [App\Http\Controllers\Api\ChatController::class, 'sendMessage']);
+        Route::post('/chat/conversations/{id}/read', [App\Http\Controllers\Api\ChatController::class, 'markAsRead']);
+        Route::get('/chat/unread', [App\Http\Controllers\Api\ChatController::class, 'unreadCount']);
 
-        Route::get('/export/products/excel', [App\Http\Controllers\Api\ExportController::class, 'productsExcel']);
-        Route::post('/import/products', [App\Http\Controllers\Api\ImportController::class, 'products']);
-
-        Route::get('/admin/users', [AdminController::class, 'users'])->middleware('permission:users.view');
-        Route::get('/admin/shops', [AdminController::class, 'shops'])->middleware('permission:shops.view');
-        Route::get('/admin/subscriptions', [AdminController::class, 'subscriptions'])->middleware('permission:subscriptions.view');
+        Route::get('/chat/conversations', [App\Http\Controllers\Api\ChatController::class, 'conversations']);
+        Route::get('/chat/customer/conversations', [App\Http\Controllers\Api\ChatController::class, 'customerConversations']);
+        Route::get('/chat/conversations/{id}', [App\Http\Controllers\Api\ChatController::class, 'show']);
+        Route::post('/chat/create', [App\Http\Controllers\Api\ChatController::class, 'create']);
+        Route::post('/chat/conversations/{id}/message', [App\Http\Controllers\Api\ChatController::class, 'sendMessage']);
+        Route::post('/chat/conversations/{id}/read', [App\Http\Controllers\Api\ChatController::class, 'markAsRead']);
+        Route::get('/chat/unread', [App\Http\Controllers\Api\ChatController::class, 'unreadCount']);
