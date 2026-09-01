@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\TwoFactorController;
 use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\LoyaltyController;
+use App\Http\Controllers\Api\ChatController;
 
 Route::prefix('v1')->group(function () {
 
@@ -164,6 +165,14 @@ Route::prefix('v1')->group(function () {
         Route::get('/loyalty/customer/{customerId}/points', [LoyaltyController::class, 'customerPoints']);
         Route::get('/loyalty/customer/{customerId}/history', [LoyaltyController::class, 'customerPointsHistory']);
 
+        Route::get('/chat/conversations', [ChatController::class, 'conversations']);
+        Route::get('/chat/customer/conversations', [ChatController::class, 'customerConversations']);
+        Route::get('/chat/conversations/{id}', [ChatController::class, 'show']);
+        Route::post('/chat/create', [ChatController::class, 'create']);
+        Route::post('/chat/conversations/{id}/message', [ChatController::class, 'sendMessage']);
+        Route::post('/chat/conversations/{id}/read', [ChatController::class, 'markAsRead']);
+        Route::get('/chat/unread', [ChatController::class, 'unreadCount']);
+
         Route::middleware(['role:admin'])->prefix('admin')->group(function () {
             Route::get('/dashboard', [AdminController::class, 'dashboard']);
             Route::get('/users', [AdminController::class, 'users']);
@@ -178,19 +187,3 @@ Route::prefix('v1')->group(function () {
         });
     });
 });
-
-        Route::get('/chat/conversations', [App\Http\Controllers\Api\ChatController::class, 'conversations']);
-        Route::get('/chat/customer/conversations', [App\Http\Controllers\Api\ChatController::class, 'customerConversations']);
-        Route::get('/chat/conversations/{id}', [App\Http\Controllers\Api\ChatController::class, 'show']);
-        Route::post('/chat/create', [App\Http\Controllers\Api\ChatController::class, 'create']);
-        Route::post('/chat/conversations/{id}/message', [App\Http\Controllers\Api\ChatController::class, 'sendMessage']);
-        Route::post('/chat/conversations/{id}/read', [App\Http\Controllers\Api\ChatController::class, 'markAsRead']);
-        Route::get('/chat/unread', [App\Http\Controllers\Api\ChatController::class, 'unreadCount']);
-
-        Route::get('/chat/conversations', [App\Http\Controllers\Api\ChatController::class, 'conversations']);
-        Route::get('/chat/customer/conversations', [App\Http\Controllers\Api\ChatController::class, 'customerConversations']);
-        Route::get('/chat/conversations/{id}', [App\Http\Controllers\Api\ChatController::class, 'show']);
-        Route::post('/chat/create', [App\Http\Controllers\Api\ChatController::class, 'create']);
-        Route::post('/chat/conversations/{id}/message', [App\Http\Controllers\Api\ChatController::class, 'sendMessage']);
-        Route::post('/chat/conversations/{id}/read', [App\Http\Controllers\Api\ChatController::class, 'markAsRead']);
-        Route::get('/chat/unread', [App\Http\Controllers\Api\ChatController::class, 'unreadCount']);
