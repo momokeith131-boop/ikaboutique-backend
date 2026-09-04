@@ -12,35 +12,39 @@ class ProductController
 {
     public function index(Request $request)
     {
-        $query = Product::with(['shop', 'category', 'images']);
+        $cacheKey = 'products_' . md5(json_encode($request->all()));
+        
+        $products = cache()->remember($cacheKey, 600, function () use ($request) {
+            $query = Product::with(['shop', 'category', 'images']);
 
-        if ($request->has('search')) {
-            $query->where('name', 'LIKE', '%' . $request->search . '%');
-        }
+            if ($request->has('search')) {
+                $query->where('name', 'LIKE', '%' . $request->search . '%');
+            }
 
-        if ($request->has('category_id')) {
-            $query->where('category_id', $request->category_id);
-        }
+            if ($request->has('category_id')) {
+                $query->where('category_id', $request->category_id);
+            }
 
-        if ($request->has('shop_id')) {
-            $query->where('shop_id', $request->shop_id);
-        }
+            if ($request->has('shop_id')) {
+                $query->where('shop_id', $request->shop_id);
+            }
 
-        if ($request->has('price_min')) {
-            $query->where('price', '>=', $request->price_min);
-        }
+            if ($request->has('price_min')) {
+                $query->where('price', '>=', $request->price_min);
+            }
 
-        if ($request->has('price_max')) {
-            $query->where('price', '<=', $request->price_max);
-        }
+            if ($request->has('price_max')) {
+                $query->where('price', '<=', $request->price_max);
+            }
 
-        if ($request->has('sort_by')) {
-            $direction = $request->get('sort_direction', 'asc');
-            $query->orderBy($request->sort_by, $direction);
-        }
+            if ($request->has('sort_by')) {
+                $direction = $request->get('sort_direction', 'asc');
+                $query->orderBy($request->sort_by, $direction);
+            }
 
-        $perPage = $request->get('per_page', config('app.per_page', 15));
-        $products = $query->paginate($perPage);
+            $perPage = $request->get('per_page', 15);
+            return $query->paginate($perPage);
+        });
 
         return response()->json($products);
     }
@@ -72,6 +76,7 @@ class ProductController
         ]);
 
         $product = Product::create($validated);
+        cache()->forget('products_');
         return response()->json($product, Response::HTTP_CREATED);
     }
 
@@ -97,6 +102,7 @@ class ProductController
         ]);
 
         $product->update($validated);
+        cache()->forget('products_');
         return response()->json($product);
     }
 
@@ -112,6 +118,7 @@ class ProductController
         }
 
         $product->delete();
+        cache()->forget('products_');
         return response()->json(['message' => 'Product deleted successfully'], Response::HTTP_OK);
     }
 
@@ -165,6 +172,7 @@ class ProductController
 
         $product->stock = $validated['stock'];
         $product->save();
+        cache()->forget('products_');
 
         return response()->json([
             'message' => 'Stock updated successfully',
@@ -185,6 +193,7 @@ class ProductController
 
         $product->stock += $validated['quantity'];
         $product->save();
+        cache()->forget('products_');
 
         return response()->json([
             'message' => 'Product restocked successfully',
